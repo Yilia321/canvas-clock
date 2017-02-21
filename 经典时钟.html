@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>时钟</title>
+    <!--[if IE]>
+    <script type="text/javascript" src="public/html5.js"></script>
+    <script type="text/javascript" src="public/excanvas.js"></script>
+    <![endif]-->
+    <style>
+        #clock{margin: 30px auto;display: block}
+    </style>
+</head>
+<body>
+<canvas id="clock">您的浏览器不支持，请更新浏览器……</canvas>
+<script>
+    window.onload=function(){
+        var clock=document.getElementById('clock'),
+                txt=clock.getContext('2d');
+        var w=clock.width=400;
+        var h=clock.height=400;
+        var r=w/2;
+
+        var rem=w/200;      //以线宽10为例计算比例问题：w/200=x/10  -->  x=w/200*10 --> rem*10
+
+        function drawBackground(){
+            txt.save(); //为了方便清除画布内容时将原点归(0,0)
+
+            txt.translate(r,r);
+            //绘制最外层圆圈
+            txt.beginPath();
+            txt.arc(0,0,r-5*rem,0,2*Math.PI,false);
+            txt.closePath();
+            txt.fillStyle='pink';
+            txt.strokeStyle='pink';
+            txt.lineWidth=10*rem;
+            txt.stroke();
+
+            //绘制1~12数字
+            var hourNum=[3,4,5,6,7,8,9,10,11,12,1,2];
+            txt.font=18*rem+'px Arial';
+            txt.textAlign='center';
+            txt.textBaseline='middle';
+            for(var i=0;i<hourNum.length;i++){
+                var rad=2*Math.PI/12*i;
+                var x=Math.cos(rad)*(r-30*rem);
+                var y=Math.sin(rad)*(r-30*rem);
+                txt.fillText(hourNum[i],x,y);
+            }
+
+            //绘制60个小圆点
+            for (var j=0;j<60;j++){
+                var sRad=2*Math.PI/60*j;
+                var sX=Math.cos(sRad)*(r-16*rem);
+                var sY=Math.sin(sRad)*(r-16*rem);
+                txt.beginPath();
+                if(j%5==0){
+                    txt.fillStyle='pink';
+                    txt.arc(sX,sY,3*rem,0,2*Math.PI,false);
+                }else {
+                    txt.fillStyle='yellow';
+                    txt.arc(sX,sY,2*rem,0,2*Math.PI,false);
+                }
+                txt.closePath();
+                txt.fill();
+            }
+        }
+
+        //绘制时针
+        function drawHour(hour,minute){
+            txt.save();  //为了防止画布旋转影响其余部分的绘制
+
+            var hRad=2*Math.PI/12*hour;
+            var minRad=2*Math.PI/12/60*minute;  //计算由于不到一小时的分钟数产生的弧度
+            txt.rotate(hRad+minRad);   //旋转到指定小时处
+
+            txt.lineCap='round';    //线端点样式,注意：此功能放在关闭路径前无效
+            txt.lineWidth=5*rem;
+            txt.strokeStyle='#666';
+
+            txt.beginPath();
+            txt.moveTo(0,10*rem);
+            txt.lineTo(0,-r/2);
+//            txt.closePath();
+            txt.stroke();
+
+            txt.restore();   //画布复原
+        }
+        //绘制分针
+        function drawMinute(minute,second){
+            txt.save();
+
+            var mRad=2*Math.PI/60*minute;
+            var sedRad=2*Math.PI/60/60*second;
+            txt.rotate(mRad+sedRad);
+
+            txt.lineCap='round';
+            txt.lineWidth=3*rem;
+            txt.strokeStyle='#999';
+
+            txt.beginPath();
+            txt.moveTo(0,12*rem);
+            txt.lineTo(0,-(r/2+14*rem));
+//            txt.closePath();
+            txt.stroke();
+
+            txt.restore();
+        }
+        //绘制秒针
+        function drawSecond(second,milsecond){
+            txt.save();
+
+            var sRad=2*Math.PI/60*second;
+            txt.rotate(sRad);
+//            var milsRad=2*Math.PI/60/1000*milsecond;
+//            txt.rotate(sRad+milsRad);
+
+            txt.fillStyle='#ccc';
+
+            txt.beginPath();
+            txt.moveTo(-2*rem,15*rem);
+            txt.lineTo(2*rem,15*rem);
+            txt.lineTo(0,-(r-15*rem));
+            txt.closePath();
+            txt.fill();
+
+            txt.restore();
+        }
+
+        //绘制时钟中心点
+        function drawDot(){
+            txt.fillStyle='#fff';
+            txt.beginPath();
+            txt.arc(0,0,2,0,2*Math.PI,false);
+            txt.closePath();
+            txt.fill();
+        }
+
+        function draw(){
+            txt.clearRect(0,0,w,h); //清除画布上原来的内容，以重新绘制
+
+            var time=new Date();
+            var hour=time.getHours(),
+                minute=time.getMinutes(),
+                second=time.getSeconds(),
+                milSecond=time.getMilliseconds();
+
+            drawBackground();
+            drawHour(hour,minute);
+            drawMinute(minute,second);
+            drawSecond(second);
+//            drawSecond(second,milSecond);
+            drawDot();
+
+            txt.restore();  //将原点归(0,0)
+        }
+
+        draw();
+        setInterval(draw,1000);
+//        setInterval(draw,1);
+
+    }
+</script>
+</body>
+</html>
